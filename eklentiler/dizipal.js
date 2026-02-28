@@ -49,7 +49,7 @@ function searchDiziPal(title, mediaType) {
         .then(function(html) {
             var results = [];
 
-            
+           
             var itemPattern = /<div[^>]*class="[^"]*post-item[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/gi;
             var items = findAll(html, '<div[^>]*class="[^"]*post-item[^"]*"[^>]*>[\\s\\S]*?<\\/div>\\s*<\\/div>');
 
@@ -98,7 +98,7 @@ function findBestMatch(results, query) {
         if (results[i].title.toLowerCase() === queryLower) return results[i];
     }
 
-    
+   
     for (var j = 0; j < results.length; j++) {
         if (results[j].title.toLowerCase().includes(queryLower)) return results[j];
     }
@@ -150,7 +150,7 @@ function extractM3u8FromIframe(iframeSrc) {
                 return { url: m3uMatch[1], subtitle: extractSubtitle(html), iframeOrigin: iframeOrigin };
             }
 
-           
+            
             var sourceMatch = findFirst(html, '"file"\\s*:\\s*"([^"]+\\.m3u8[^"]*)"');
             if (sourceMatch) {
                 console.log('[DiziPal] Found m3u8 from sources:', sourceMatch[1]);
@@ -208,12 +208,14 @@ function parseMasterM3u8(masterUrl, streamHeaders) {
 
 function extractSubtitle(html) {
     var subMatch = findFirst(html, '"subtitle"\\s*:\\s*"([^"]+)"');
-    return subMatch ? subMatch[1] : null;
+    if (!subMatch) return null;
+    console.log('[DiziPal] Raw subtitle string:', subMatch[1]);
+    return subMatch[1];
 }
 
 
 function getEpisodeUrl(contentUrl, seasonNum, episodeNum) {
-    
+   
     var slug = contentUrl.replace(/\/$/, '').split('/dizi/')[1] || '';
     slug = slug.replace(/\/$/, '');
     return BASE_URL + '/bolum/' + slug + '-' + seasonNum + '-sezon-' + episodeNum + '-bolum-izle/';
@@ -273,16 +275,23 @@ function getStreams(tmdbId, mediaType, seasonNum, episodeNum) {
                                 var subtitles = [];
                                 if (result.subtitle) {
                                     result.subtitle.split(',').forEach(function(sub) {
+                                        sub = sub.trim();
+                                        if (!sub) return;
                                         var subLang = sub.match(/\[([^\]]+)\]/);
                                         var subUrl = sub.replace(/\[[^\]]+\]/, '').trim();
-                                        var lang = 'Turkish';
+                                        var label = 'Turkish';
                                         if (subLang) {
                                             var l = subLang[1].toLowerCase();
-                                            if (l.includes('tur') || l.includes('tr') || l.includes('türk')) lang = 'Turkish';
-                                            else if (l.includes('ing') || l.includes('en')) lang = 'English';
-                                            else lang = subLang[1];
+                                            if (l.includes('tur') || l.includes('tr') || l.includes('türk')) label = 'Turkish';
+                                            else if (l.includes('ing') || l.includes('en')) label = 'English';
+                                            else label = subLang[1];
+                                        } else {
+                                           
+                                            if (sub.includes('_tur')) label = 'Turkish';
+                                            else if (sub.includes('_eng')) label = 'English';
+                                            subUrl = sub;
                                         }
-                                        if (subUrl) subtitles.push({ lang: lang, url: subUrl });
+                                        if (subUrl) subtitles.push({ label: label, url: subUrl });
                                     });
                                 }
 
@@ -300,7 +309,7 @@ function getStreams(tmdbId, mediaType, seasonNum, episodeNum) {
                                             
                                             parsed.streams.forEach(function(s) {
                                                 streams.push({
-                                                    name: 'DiziPal · TR Dublaj',
+                                                    name: '⌜ DiziPal ⌟ | TR Dublaj | ' + s.quality,
                                                     title: title + (year ? ' (' + year + ')' : '') + ' · ' + s.quality,
                                                     url: s.url,
                                                     quality: s.quality,
@@ -312,9 +321,9 @@ function getStreams(tmdbId, mediaType, seasonNum, episodeNum) {
                                             });
                                         }
 
-                                        
+                                       
                                         streams.push({
-                                            name: 'DiziPal · Altyazılı',
+                                            name: '⌜ DiziPal ⌟ | Altyazılı',
                                             title: title + (year ? ' (' + year + ')' : ''),
                                             url: result.url,
                                             quality: '720p',

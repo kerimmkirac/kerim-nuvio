@@ -9,7 +9,7 @@ getStreams('27205', 'movie', null, null).then(function(streams) {
         if (s.subtitles && s.subtitles.length > 0) {
             console.log('  Altyazilar:');
             s.subtitles.forEach(function(sub) {
-                console.log('   ', sub.lang, '-', sub.url);
+                console.log('   ', sub.label, '-', sub.url);
             });
         } else {
             console.log('  Altyazi yok');
@@ -26,7 +26,7 @@ getStreams('1434', 'tv', 1, 1).then(function(streams) {
         if (s.subtitles && s.subtitles.length > 0) {
             console.log('  Altyazilar:');
             s.subtitles.forEach(function(sub) {
-                console.log('   ', sub.lang, '-', sub.url);
+                console.log('   ', sub.label, '-', sub.url);
             });
         } else {
             console.log('  Altyazi yok');
